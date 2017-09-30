@@ -1,0 +1,9 @@
+﻿{
+  "authEntity": {
+    "userEntity": {
+      "email": "your@email.com",
+      "api_id": "contactSciCropInOrderToGetYourAPIId",
+      "hash":  "your_password"
+    }
+  }
+}
