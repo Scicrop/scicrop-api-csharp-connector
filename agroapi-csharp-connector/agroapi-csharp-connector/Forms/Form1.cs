@@ -16,48 +16,120 @@ namespace agroapi_csharp_connector
     public partial class Form1 : Form
     {
         private AuthEntity authEntity = null;
+        private String strDate = null;
 
         public Form1()
         {
             InitializeComponent();
-            string jsonString = FileHelper.Instance.GetStringFromFilePath("agroapi.io.json");
-            ScicropEntity scicropEntity = ScicropEntity.FromJson(jsonString);
-            authEntity = scicropEntity.AuthEntity;
-            label2.Text = authEntity.UserEntity.Email + ":"+authEntity.UserEntity.Hash;
-        }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            DbConnector dbc = new DbConnector();
-            DateTime collectDate = dbc.GetLatestCall();
-
-            String strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDate);
-
-            ScicropEntity se = new ScicropEntity();
-            PayloadEntity payloadEntity = new PayloadEntity();
-            Freight freight = new Freight();
-            freight.Date = strDate;
-            List<Freight> freightList = new List<Freight>();
-            freightList.Add(freight);
-            payloadEntity.FreightLst = freightList;
-            se.PayloadEntity = payloadEntity;
-
-            string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA("freight/dailyUpdate", se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
-
-            se = ScicropEntity.FromJson(jsonStr);
-
-            freightList = se.PayloadEntity.FreightLst;
-
-            foreach (var item in freightList)
+            try
             {
-                Console.WriteLine(item.DestinationCity.Name);
+                string jsonString = FileHelper.Instance.GetStringFromFilePath("agroapi.io.json");
+                ScicropEntity scicropEntity = ScicropEntity.FromJson(jsonString);
+                authEntity = scicropEntity.AuthEntity;
+                label2.Text = authEntity.UserEntity.Email;
+                GetLastRun();
             }
-
+            catch (Exception e)
+            {
+                updateStatus("Error: "+e.Message);
+            }
+            
 
             
 
         }
 
+        private void GetLastRun()
+        {
+
+            try
+            {
+                DbConnector dbc = new DbConnector();
+                DateTime collectDate = dbc.GetLatestCall();
+
+                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDate);
+                ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDate);
+                List<ServiceDataGridEntity> sdList = new List<ServiceDataGridEntity>();
+                sdList.Add(sd);
+
+                dataGridView1.DataSource = sdList;
+
+                dataGridView1.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+                dataGridView1.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            
+        }
+
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GetLastRun();
+                textBox1.Text = "";
+                button1.Enabled = false;
+                button1.Text = "Processing...";
+
+                ScicropEntity se = new ScicropEntity();
+                PayloadEntity payloadEntity = new PayloadEntity();
+                Freight freight = new Freight();
+                freight.Date = strDate;
+                List<Freight> freightList = new List<Freight>();
+                freightList.Add(freight);
+                payloadEntity.FreightLst = freightList;
+                se.PayloadEntity = payloadEntity;
+
+                string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA("freight/dailyUpdate", se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
+
+                se = ScicropEntity.FromJson(jsonStr);
+
+                freightList = se.PayloadEntity.FreightLst;
+
+                updateStatus("Looking for freight data since: " + strDate);
+
+                if (freightList.Count > 0)
+                {
+                    updateStatus("Inserting " + freightList.Count + " freight offer(s).");
+                    foreach (var item in freightList)
+                    {
+                        updateStatus(item.Load.LoadName + ": " + item.SourceCity.Name + " > " + item.DestinationCity.Name);
+                        DbConnector dbc = new DbConnector();
+                        dbc.InsertFreight(item);
+                    }
+                    updateStatus("All data inserted.");
+                }
+                else
+                {
+                    updateStatus("No new freight data was found.");
+                }
+
+                GetLastRun();
+                
+            }
+            catch (Exception ex)
+            {
+
+                updateStatus("Error: " + ex.Message);
+            }
+            finally
+            {
+                button1.Enabled = true;
+                button1.Text = "Run";
+            }
+            
+
+        }
+
+        private void updateStatus(string msg)
+        {
+            textBox1.Text += msg+"\r\n";
+        }
         
     }
 }
