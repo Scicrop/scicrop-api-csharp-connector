@@ -123,8 +123,6 @@ namespace SciCrop.AgroAPI.Connector.Db
                 }
             }
 
-            if (collectDate == DateTime.MinValue) collectDate = DateTime.Now.AddDays(-1);
-
             return collectDate;
         }
         

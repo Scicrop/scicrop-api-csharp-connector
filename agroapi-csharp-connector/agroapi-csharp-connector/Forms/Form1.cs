@@ -27,6 +27,7 @@ using System.Windows.Forms;
 using SciCrop.AgroAPI.Connector.Entities;
 using SciCrop.AgroAPI.Connector.Helpers;
 using SciCrop.AgroAPI.Connector.Db;
+using System.Diagnostics;
 
 namespace agroapi_csharp_connector
 {
@@ -34,18 +35,29 @@ namespace agroapi_csharp_connector
     {
         private AuthEntity authEntity = null;
         private String strDate = null;
+        private DateTime collectDate = DateTime.MinValue;
+        private bool isSilent = false;
 
-        public Form1()
+        public Form1(bool isSilent)
         {
+            this.isSilent = isSilent;
             InitializeComponent();
 
             try
             {
+
+                System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                string version = fvi.FileVersion;
+
+                this.Text +=" ["+version+"]";
+
                 string jsonString = FileHelper.Instance.GetStringFromFilePath("agroapi.io.json");
                 ScicropEntity scicropEntity = ScicropEntity.FromJson(jsonString);
                 authEntity = scicropEntity.AuthEntity;
                 label2.Text = authEntity.UserEntity.Email;
                 GetLastRun();
+                if (isSilent) Run();
             }
             catch (Exception e)
             {
@@ -57,13 +69,33 @@ namespace agroapi_csharp_connector
 
         }
 
+        private void WriteEventLog(string message)
+        {
+            try
+            {
+                string sSource = "SciCrop AgroAPI Connector";
+                string sLog = "Application";
+
+                if (!EventLog.SourceExists(sSource))
+                    EventLog.CreateEventSource(sSource, sLog);
+                
+                EventLog.WriteEntry(sSource, message, EventLogEntryType.Information);
+                Console.WriteLine(message);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         private void GetLastRun()
         {
 
             try
             {
                 DbConnector dbc = new DbConnector();
-                DateTime collectDate = dbc.GetLatestCall();
+                collectDate = dbc.GetLatestCall();
 
                 strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDate);
                 ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDate);
@@ -86,12 +118,31 @@ namespace agroapi_csharp_connector
 
         private void button1_Click(object sender, EventArgs e)
         {
+
+            Run();
+
+        }
+
+        private void Run()
+        {
             try
             {
+                progressBar1.Value = 0;
                 GetLastRun();
+                string rest = "freight/dailyUpdate";
+                if (collectDate == DateTime.MinValue)
+                {
+                    rest = "freight/historic";
+                    updateStatus("Downloading historical data. ");
+                }
+                else
+                {
+                    updateStatus("Looking for freight data since: " + strDate);
+                }
                 textBox1.Text = "";
-                button1.Enabled = false;
                 button1.Text = "Processing...";
+                button1.Enabled = false;
+
 
                 ScicropEntity se = new ScicropEntity();
                 PayloadEntity payloadEntity = new PayloadEntity();
@@ -102,32 +153,43 @@ namespace agroapi_csharp_connector
                 payloadEntity.FreightLst = freightList;
                 se.PayloadEntity = payloadEntity;
 
-                string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA("freight/dailyUpdate", se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
+                string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(rest, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
 
                 se = ScicropEntity.FromJson(jsonStr);
 
                 freightList = se.PayloadEntity.FreightLst;
 
-                updateStatus("Looking for freight data since: " + strDate);
+
 
                 if (freightList.Count > 0)
                 {
+                    int i = 1;
                     updateStatus("Inserting " + freightList.Count + " freight offer(s).");
                     foreach (var item in freightList)
                     {
+
                         updateStatus(item.Load.LoadName + ": " + item.SourceCity.Name + " > " + item.DestinationCity.Name);
                         DbConnector dbc = new DbConnector();
-                        dbc.InsertFreight(item);
+                        try
+                        {
+                            dbc.InsertFreight(item);
+                        }
+                        catch (Exception)
+                        { }
+                        progressBar1.Maximum = freightList.Count;
+                        progressBar1.Value = i;
+                        i++;
                     }
+                    
                     updateStatus("All data inserted.");
                 }
                 else
                 {
                     updateStatus("No new freight data was found.");
                 }
-
+                WriteEventLog("Freight data collected (" + freightList.Count + " | REST: " + rest + " | "+isSilent+")");
                 GetLastRun();
-                
+
             }
             catch (Exception ex)
             {
@@ -138,9 +200,8 @@ namespace agroapi_csharp_connector
             {
                 button1.Enabled = true;
                 button1.Text = "Run";
+                if (this.isSilent) System.Environment.Exit(0);
             }
-            
-
         }
 
         private void updateStatus(string msg)
