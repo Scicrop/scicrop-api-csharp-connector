@@ -34,7 +34,8 @@ namespace agroapi_csharp_connector
     public partial class Form1 : Form
     {
         private AuthEntity authEntity = null;
-        private String strDate = null;
+        private String strDateFreight = null;
+        private String strDateVeg = null;
         private DateTime collectDateFreight = DateTime.MinValue;
         private DateTime collectDateVeg = DateTime.MinValue;
         private bool isSilent = false;
@@ -100,13 +101,13 @@ namespace agroapi_csharp_connector
                 DbConnector dbc = new DbConnector();
 
                 collectDateFreight = dbc.GetFreightLatestCall();
-                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateFreight);
-                ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDate);
+                strDateFreight = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateFreight);
+                ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDateFreight);
                 sdList.Add(sd);
 
                 collectDateVeg = dbc.GetVegLatestCall();
-                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateVeg);
-                sd = new ServiceDataGridEntity("VEGETABLES", strDate);
+                strDateVeg = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateVeg);
+                sd = new ServiceDataGridEntity("VEGETABLES", strDateVeg);
                 sdList.Add(sd);
 
                 dataGridView1.DataSource = sdList;
@@ -145,7 +146,7 @@ namespace agroapi_csharp_connector
                 }
                 else
                 {
-                    updateStatus("Looking for freight data since: " + strDate);
+                    updateStatus("Looking for freight data since: " + strDateFreight);
                 }
 
                 if (collectDateVeg == DateTime.MinValue)
@@ -155,30 +156,37 @@ namespace agroapi_csharp_connector
                 }
                 else
                 {
-                    updateStatus("Looking for freight data since: " + strDate);
+                    updateStatus("Looking for vegetables data since: " + strDateVeg);
                 }
 
 
-                textBox1.Text = "";
+                //textBox1.Text = "";
                 button1.Text = "Processing...";
                 button1.Enabled = false;
 
 
                 ScicropEntity se = new ScicropEntity();
                 PayloadEntity payloadEntity = new PayloadEntity();
+
                 Freight freight = new Freight();
-                freight.Date = strDate;
+                freight.Date = strDateFreight;
                 List<Freight> freightList = new List<Freight>();
                 freightList.Add(freight);
                 payloadEntity.FreightLst = freightList;
+
+                VegetablesQuotationEntity vegetablesQuotationEntity = new VegetablesQuotationEntity();
+                vegetablesQuotationEntity.PriceDate = strDateVeg;
+                List<VegetablesQuotationEntity> vegs = new List<VegetablesQuotationEntity>();
+                vegs.Add(vegetablesQuotationEntity);
+                payloadEntity.VegetablesQuotationEntities = vegs;
+
                 se.PayloadEntity = payloadEntity;
 
+
+                
                 string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(restFreight, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
-
                 se = ScicropEntity.FromJson(jsonStr);
-
                 freightList = se.PayloadEntity.FreightLst;
-
 
 
                 if (freightList.Count > 0)
@@ -201,7 +209,7 @@ namespace agroapi_csharp_connector
                         i++;
                     }
                     
-                    updateStatus("All data inserted.");
+                    updateStatus("All freight data inserted.");
                 }
                 else
                 {
@@ -210,6 +218,39 @@ namespace agroapi_csharp_connector
                 WriteEventLog("Freight data collected (" + freightList.Count + " | REST: " + restFreight + " | "+isSilent+")");
                 GetLastRun();
 
+                jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(restVegetables, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
+                se = ScicropEntity.FromJson(jsonStr);
+                vegs = se.PayloadEntity.VegetablesQuotationEntities;
+
+                if (vegs.Count > 0)
+                {
+                    int i = 1;
+                    updateStatus("Inserting " + vegs.Count + " vegetables quotation(s).");
+                    foreach (var item in vegs)
+                    {
+
+                        updateStatus(item.VegName + ": " + item.VegPrice + " from  " + item.IbgeUfId);
+                        DbConnector dbc = new DbConnector();
+                        try
+                        {
+                            dbc.InsertVegetableQuotation(item);
+                        }
+                        catch (Exception)
+                        { }
+                        progressBar1.Maximum = vegs.Count;
+                        progressBar1.Value = i;
+                        i++;
+                    }
+
+                    updateStatus("All freight data inserted.");
+                }
+                else
+                {
+                    updateStatus("No new freight data was found.");
+                }
+                WriteEventLog("Freight data collected (" + vegs.Count + " | REST: " + restVegetables + " | " + isSilent + ")");
+                GetLastRun();
+                
             }
             catch (Exception ex)
             {

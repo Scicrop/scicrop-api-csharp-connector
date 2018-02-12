@@ -83,7 +83,57 @@ namespace SciCrop.AgroAPI.Connector.Db
             }
         }
 
-      public DateTime GetFreightLatestCall()
+        public void InsertVegetableQuotation(VegetablesQuotationEntity veg)
+        {
+            string connStr = null;
+            connStr = ConfigurationManager.ConnectionStrings["SciCrop.AgroAPI.Connector.Properties.Settings.dbConnectionString"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                try
+                {
+                    conn.Open();
+
+                    string sql = "INSERT INTO [dbo].[SCICROP_FREIGHT_T]" +
+                    "           ([ProvIbge]" +
+                    "           ,[VegName]" +
+                    "           ,[VegPrice]" +
+                    "           ,[PriceDate]" +
+                    "           ,[DataSrc]" +
+                    "     VALUES" +
+                    "           (@0" +
+                    "           ,@1" +
+                    "           ,@2" +
+                    "           ,@3" +
+                    "           ,@4)";
+
+                    SqlCommand insertCommand = new SqlCommand(sql, conn);
+
+                    DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Convert.ToDouble(veg.PriceDate));
+
+                    insertCommand.Parameters.Add(new SqlParameter("0", veg.IbgeUfId));
+                    insertCommand.Parameters.Add(new SqlParameter("1", veg.VegName));
+                    insertCommand.Parameters.Add(new SqlParameter("2", veg.VegPrice));
+                    insertCommand.Parameters.Add(new SqlParameter("3", dt));
+                    insertCommand.Parameters.Add(new SqlParameter("4", veg.DataSource));
+                 
+                    insertCommand.ExecuteNonQuery();
+
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+
+                    if (conn != null) conn.Close();
+
+                }
+            }
+        }
+
+        public DateTime GetFreightLatestCall()
         {
             DateTime collectDate = DateTime.MinValue;
 

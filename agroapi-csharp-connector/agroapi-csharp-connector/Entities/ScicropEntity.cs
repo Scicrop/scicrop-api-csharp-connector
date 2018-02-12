@@ -76,6 +76,27 @@ namespace SciCrop.AgroAPI.Connector.Entities
         [JsonProperty("freightLst")]
         public List<Freight> FreightLst { get; set; }
 
+        [JsonProperty("vegetablesQuotationEntities")]
+        public List<VegetablesQuotationEntity> VegetablesQuotationEntities { get; set; }
+
+    }
+
+    public partial class VegetablesQuotationEntity
+    {
+        [JsonProperty("vegName")]
+        public String VegName { get; set; }
+
+        [JsonProperty("vegPrice")]
+        public double VegPrice { get; set; }
+
+        [JsonProperty("dataSource")]
+        public String DataSource { get; set; }
+
+        [JsonProperty("priceDate")]
+        public String PriceDate { get; set; }
+
+        [JsonProperty("ibgeUfId")]
+        public int IbgeUfId { get; set; }
     }
 
     public partial class Freight
