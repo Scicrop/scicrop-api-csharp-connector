@@ -83,7 +83,7 @@ namespace SciCrop.AgroAPI.Connector.Db
             }
         }
 
-      public DateTime GetLatestCall()
+      public DateTime GetFreightLatestCall()
         {
             DateTime collectDate = DateTime.MinValue;
 
@@ -125,6 +125,53 @@ namespace SciCrop.AgroAPI.Connector.Db
 
             return collectDate;
         }
-        
+
+        public DateTime GetVegLatestCall()
+        {
+            DateTime collectDate = DateTime.MinValue;
+
+            string connStr = null;
+            connStr = ConfigurationManager.ConnectionStrings["SciCrop.AgroAPI.Connector.Properties.Settings.dbConnectionString"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                try
+                {
+                    conn.Open();
+
+                    SqlCommand command = new SqlCommand("SELECT TOP 1 PriceDate FROM [dbo].[SCICROP_BRVEGPRICES_T] ORDER BY PriceDate DESC", conn);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+
+                        while (reader.Read())
+                        {
+                            int collectDateIdx = reader.GetOrdinal("PriceDate");
+                            if (!reader.IsDBNull(collectDateIdx)) collectDate = reader.GetDateTime(collectDateIdx);
+
+                        }
+                        reader.Close();
+                    }
+
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+
+                    if (conn != null) conn.Close();
+
+                }
+            }
+
+            return collectDate;
+        }
+
     }
+
 }
+
+
+

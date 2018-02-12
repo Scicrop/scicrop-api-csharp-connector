@@ -35,7 +35,8 @@ namespace agroapi_csharp_connector
     {
         private AuthEntity authEntity = null;
         private String strDate = null;
-        private DateTime collectDate = DateTime.MinValue;
+        private DateTime collectDateFreight = DateTime.MinValue;
+        private DateTime collectDateVeg = DateTime.MinValue;
         private bool isSilent = false;
 
         public Form1(bool isSilent)
@@ -94,12 +95,18 @@ namespace agroapi_csharp_connector
 
             try
             {
-                DbConnector dbc = new DbConnector();
-                collectDate = dbc.GetLatestCall();
-
-                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDate);
-                ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDate);
                 List<ServiceDataGridEntity> sdList = new List<ServiceDataGridEntity>();
+
+                DbConnector dbc = new DbConnector();
+
+                collectDateFreight = dbc.GetFreightLatestCall();
+                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateFreight);
+                ServiceDataGridEntity sd = new ServiceDataGridEntity("FREIGHT", strDate);
+                sdList.Add(sd);
+
+                collectDateVeg = dbc.GetVegLatestCall();
+                strDate = String.Format("{0:yyyy-MM-dd HH:mm:ss}", collectDateVeg);
+                sd = new ServiceDataGridEntity("VEGETABLES", strDate);
                 sdList.Add(sd);
 
                 dataGridView1.DataSource = sdList;
@@ -129,16 +136,29 @@ namespace agroapi_csharp_connector
             {
                 progressBar1.Value = 0;
                 GetLastRun();
-                string rest = "freight/dailyUpdate";
-                if (collectDate == DateTime.MinValue)
+                string restFreight = "freight/dailyUpdate";
+                string restVegetables = "vegetables/dailyUpdate";
+                if (collectDateFreight == DateTime.MinValue)
                 {
-                    rest = "freight/historic";
-                    updateStatus("Downloading historical data. ");
+                    restFreight = "freight/historic";
+                    updateStatus("Downloading freight historical data. ");
                 }
                 else
                 {
                     updateStatus("Looking for freight data since: " + strDate);
                 }
+
+                if (collectDateVeg == DateTime.MinValue)
+                {
+                    restVegetables = "vegetables/historic";
+                    updateStatus("Downloading vegetables historical data. ");
+                }
+                else
+                {
+                    updateStatus("Looking for freight data since: " + strDate);
+                }
+
+
                 textBox1.Text = "";
                 button1.Text = "Processing...";
                 button1.Enabled = false;
@@ -153,7 +173,7 @@ namespace agroapi_csharp_connector
                 payloadEntity.FreightLst = freightList;
                 se.PayloadEntity = payloadEntity;
 
-                string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(rest, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
+                string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(restFreight, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
 
                 se = ScicropEntity.FromJson(jsonStr);
 
@@ -187,7 +207,7 @@ namespace agroapi_csharp_connector
                 {
                     updateStatus("No new freight data was found.");
                 }
-                WriteEventLog("Freight data collected (" + freightList.Count + " | REST: " + rest + " | "+isSilent+")");
+                WriteEventLog("Freight data collected (" + freightList.Count + " | REST: " + restFreight + " | "+isSilent+")");
                 GetLastRun();
 
             }
