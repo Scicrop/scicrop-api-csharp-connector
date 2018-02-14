@@ -70,7 +70,7 @@ namespace SciCrop.AgroAPI.Connector.Db
                     insertCommand.ExecuteNonQuery();
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     throw;
                 }
@@ -94,12 +94,8 @@ namespace SciCrop.AgroAPI.Connector.Db
                 {
                     conn.Open();
 
-                    string sql = "INSERT INTO [dbo].[SCICROP_FREIGHT_T]" +
-                    "           ([ProvIbge]" +
-                    "           ,[VegName]" +
-                    "           ,[VegPrice]" +
-                    "           ,[PriceDate]" +
-                    "           ,[DataSrc]" +
+                    string sql = "INSERT INTO [dbo].[SCICROP_BRVEGPRICES_T]" +
+                    "           ([ProvIbge], [VegName], [VegPrice], [PriceDate], [DataSrc])" +
                     "     VALUES" +
                     "           (@0" +
                     "           ,@1" +
@@ -120,7 +116,7 @@ namespace SciCrop.AgroAPI.Connector.Db
                     insertCommand.ExecuteNonQuery();
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     throw;
                 }

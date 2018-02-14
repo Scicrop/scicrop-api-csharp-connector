@@ -28,6 +28,7 @@ using SciCrop.AgroAPI.Connector.Entities;
 using SciCrop.AgroAPI.Connector.Helpers;
 using SciCrop.AgroAPI.Connector.Db;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace agroapi_csharp_connector
 {
@@ -138,7 +139,7 @@ namespace agroapi_csharp_connector
                 progressBar1.Value = 0;
                 GetLastRun();
                 string restFreight = "freight/dailyUpdate";
-                string restVegetables = "vegetables/dailyUpdate";
+                string restVegetables = "vegetables/dailyUpdateQuotation/"+ collectDateVeg.ToString("yyyy-MM-dd");
                 if (collectDateFreight == DateTime.MinValue)
                 {
                     restFreight = "freight/historic";
@@ -151,7 +152,7 @@ namespace agroapi_csharp_connector
 
                 if (collectDateVeg == DateTime.MinValue)
                 {
-                    restVegetables = "vegetables/historic";
+                    restVegetables = "vegetables/historicQuotation";
                     updateStatus("Downloading vegetables historical data. ");
                 }
                 else
@@ -202,8 +203,10 @@ namespace agroapi_csharp_connector
                         {
                             dbc.InsertFreight(item);
                         }
-                        catch (Exception)
-                        { }
+                        catch (Exception e)
+                        {
+                            updateStatus(e.Message);
+                        }
                         progressBar1.Maximum = freightList.Count;
                         progressBar1.Value = i;
                         i++;
@@ -218,7 +221,7 @@ namespace agroapi_csharp_connector
                 WriteEventLog("Freight data collected (" + freightList.Count + " | REST: " + restFreight + " | "+isSilent+")");
                 GetLastRun();
 
-                jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(restVegetables, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
+                jsonStr = UrlHelper.Instance.GetScicropEntityJsonBA(restVegetables, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
                 se = ScicropEntity.FromJson(jsonStr);
                 vegs = se.PayloadEntity.VegetablesQuotationEntities;
 
@@ -235,20 +238,22 @@ namespace agroapi_csharp_connector
                         {
                             dbc.InsertVegetableQuotation(item);
                         }
-                        catch (Exception)
-                        { }
+                        catch (Exception e)
+                        {
+                            updateStatus(e.Message);
+                        }
                         progressBar1.Maximum = vegs.Count;
                         progressBar1.Value = i;
                         i++;
                     }
 
-                    updateStatus("All freight data inserted.");
+                    updateStatus("All Vegetables data inserted.");
                 }
                 else
                 {
-                    updateStatus("No new freight data was found.");
+                    updateStatus("No new Vegetables data was found.");
                 }
-                WriteEventLog("Freight data collected (" + vegs.Count + " | REST: " + restVegetables + " | " + isSilent + ")");
+                WriteEventLog("Vegetables data collected (" + vegs.Count + " | REST: " + restVegetables + " | " + isSilent + ")");
                 GetLastRun();
                 
             }
@@ -267,7 +272,7 @@ namespace agroapi_csharp_connector
 
         private void updateStatus(string msg)
         {
-            textBox1.Text += msg+"\r\n";
+            textBox1.AppendText(msg + "\r\n");
         }
         
     }

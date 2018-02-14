@@ -75,5 +75,39 @@ namespace SciCrop.AgroAPI.Connector.Helpers
             
             return jsonStr;
         }
+
+        public string GetScicropEntityJsonBA(string rest, string username, string password)
+        {
+            string jsonStr = null;
+
+            try
+            {
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://engine.scicrop.com/scicrop-engine-web/api/v1/" + rest);
+
+                string restCredentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
+
+                httpWebRequest.Headers.Add("Authorization", "Basic " + restCredentials);
+
+
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Method = "GET";
+
+      
+
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    jsonStr = streamReader.ReadToEnd();
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+
+            return jsonStr;
+        }
     }
 }
