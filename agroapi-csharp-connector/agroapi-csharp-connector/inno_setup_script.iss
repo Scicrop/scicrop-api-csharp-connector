@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SciCrop® AgroAPI Connector"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.2.1"
 #define MyAppPublisher "SciCrop®"
 #define MyAppURL "https://scicrop.com"
 #define MyAppExeName "agroapi-csharp-connector.exe"
@@ -35,8 +35,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi-csharp-connector.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi.io.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi-csharp-connector.exe.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi.io.json"; DestDir: "{app}"; Flags: Flags: ignoreversion recursesubdirs createallsubdirs onlyifdoesntexist
+Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi-csharp-connector.exe.config"; DestDir: "{app}"; Flags: Flags: ignoreversion recursesubdirs createallsubdirs onlyifdoesntexist
 ; Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\agroapi-csharp-connector.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Administrator\Documents\GitHub\agroapi-csharp-connector\agroapi-csharp-connector\agroapi-csharp-connector\bin\Release\Newtonsoft.Json.xml"; DestDir: "{app}"; Flags: ignoreversion
