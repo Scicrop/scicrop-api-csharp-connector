@@ -67,6 +67,7 @@ namespace SciCrop.AgroAPI.Connector.Entities
         {
             MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
             DateParseHandling = DateParseHandling.None,
+            NullValueHandling = NullValueHandling.Ignore,
         };
     }
 
@@ -195,7 +196,7 @@ namespace SciCrop.AgroAPI.Connector.Entities
     public partial class ResponseEntity
     {
         [JsonProperty("id")]
-        public double Id { get; set; }
+        public Double Id { get; set; }
 
         [JsonProperty("epochTime")]
         public long EpochTime { get; set; }

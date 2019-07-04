@@ -183,8 +183,8 @@ namespace agroapi_csharp_connector
 
                 se.PayloadEntity = payloadEntity;
 
-
                 
+
                 string jsonStr = UrlHelper.Instance.PostScicropEntityJsonBA(restFreight, se, authEntity.UserEntity.Email, authEntity.UserEntity.Hash);
                 se = ScicropEntity.FromJson(jsonStr);
                 freightList = se.PayloadEntity.FreightLst;

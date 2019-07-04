@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AgroAPI.io Connector for Windows")]
+[assembly: AssemblyTitle("SciCrop® AgroAPI.io Connector for Windows")]
 [assembly: AssemblyDescription("Allows consumption of SciCrop® services available in AgroAPI.io")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SciCrop®")]
 [assembly: AssemblyProduct("agroapi-csharp-connector")]
-[assembly: AssemblyCopyright("Copyright  2017")]
+[assembly: AssemblyCopyright("Copyright  2017-2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.2.0")]
-[assembly: AssemblyFileVersion("0.2.0")]
+[assembly: AssemblyVersion("0.2.1")]
+[assembly: AssemblyFileVersion("0.2.1")]
