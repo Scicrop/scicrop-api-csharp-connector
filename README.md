@@ -1,3 +1,3 @@
-# AgroAPI.io Connector for Windows (agroapi-csharp-connector)
-- Allows consumption of SciCrop® services available in AgroAPI.io (http://agroapi.io), in Microsoft Windows environments.
+# SciCrop API Connector for Windows (scicrop-api-csharp-connector) - DEPRECATED
+- Allows consumption of SciCrop® API services available https://scicrop.com, inside Microsoft Windows environments.
 - Written in C# (.NET 4.0) 
